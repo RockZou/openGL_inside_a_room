@@ -1,0 +1,15 @@
+Put all the files in this directory into the $(SolutionDir)\Debug folder.
+The $(SolutionDir) is the directory that contains the .sln file. It is the top directory of the project.
+
+Go to Project Properties > Configurations Properties. 
+Choose "All Configurations" from the drop down menu at the top.
+
+Then add $(SolutionDir)\Debug\include to 
+Configuration Properties > C/C++ > General > Additional Include Directories
+
+Add $(SolutionDir)\Debug\lib to 
+Configuration Properties > Linker > General > Additional Library Directories
+
+Add freeglut.lib and glew32.lib to 
+Configuration Properties > Linker > Input > Additional Dependencies
+
