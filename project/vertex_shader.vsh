@@ -17,4 +17,5 @@ void main () {
 	s_fPosition=s_vPosition.xyz;//send the vertex position
 	 
 	gl_Position = Mrot*s_vPosition;
+	//gl_Position = s_vPosition;
 }

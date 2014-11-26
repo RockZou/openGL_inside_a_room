@@ -7,7 +7,7 @@
 using namespace std;
 
 #define BUFFER_OFFSET(offset) ( (void *) offset )
-
+#define EPS 0.000000001
 
 
 /**************KNOWN UNFIXED BUG*************/
@@ -35,8 +35,8 @@ int g_width = 512;
 GLfloat p1_x, p1_y, p2_x, p2_y;
 
 
-GLuint Mrot_unif;
-GLuint Mrot_unif_1;
+GLuint Mrot_unif;//location of the Mrot in shader for top
+GLuint Mrot_unif_1;//location of the Mrot in shader for bottom
 
 
 GLuint program_0;
@@ -174,9 +174,9 @@ void getMatrix(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
 {
 	// Calculate z1 and z2 for following calculations	
 	GLfloat z1_sq = 3 - x1*x1 - y1*y1;
-	GLfloat z1 = z1_sq>0.000001 ? sqrt(z1_sq) : 0.000001;
+	GLfloat z1 = z1_sq>0.000001 ? sqrt(z1_sq) : EPS;
 	GLfloat z2_sq = 3 - x2*x2 - y2*y2;
-	GLfloat z2 = z2_sq > 0.000001 ? sqrt(z2_sq) : 0.000001;
+	GLfloat z2 = z2_sq > 0.000001 ? sqrt(z2_sq) : EPS;
 	printf("z1 is %f", z1);
 	printf("z2 is %f", z2);
 	// Find the rotation vector
@@ -184,7 +184,7 @@ void getMatrix(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
 	GLfloat rotateY = z1*x2 - x1*z2;
 	GLfloat rotateZ = x1*y2 - y1*x2;
 	// Normalize rotation vector
-	GLfloat rotateLength = sqrt(rotateX*rotateX + rotateY*rotateY + rotateZ*rotateZ)+0.000001;//0.00001 to fix the rotateLength==0 bug
+	GLfloat rotateLength = sqrt(rotateX*rotateX + rotateY*rotateY + rotateZ*rotateZ)+EPS;//0.00001 to fix the rotateLength==0 bug
 	printf("rotateLength is %f\n", rotateLength);
 	rotateX = -rotateX / rotateLength;
 	rotateY = -rotateY / rotateLength;
@@ -193,7 +193,7 @@ void getMatrix(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
 
 
 	GLfloat cosTheta = (x1*x2 + y1*y2 + z1*z2) / 3;
-	GLfloat sinTheta = sqrt(1 - cosTheta*cosTheta);
+	GLfloat sinTheta = sqrt(1 - cosTheta*cosTheta) + EPS;
 	GLfloat t_rotate_mat[16];//temperary rotation matrix
 	//define the rotation matrix
 	for (int i = 0; i<16; t_rotate_mat[i++] = 0);
@@ -235,8 +235,15 @@ void getMatrix(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
 		if (i % 4 == 0) printf("\n");
 		printf("%f ", rotate_mat[i]);
 	}
-
+	
+	glUseProgram(program_0);
+	//Mrot_unif = glGetUniformLocation(program_0, "Mrot");
 	glUniformMatrix4fv(Mrot_unif, 1, GL_FALSE, rotate_mat);
+
+	glUseProgram(program_1);
+	//get the rotation matrix location in the shader
+	//Mrot_unif_1 = glGetUniformLocation(program_1, "Mrot_1");
+	glUniformMatrix4fv(Mrot_unif_1, 1, GL_FALSE, rotate_mat);
 }
 
 
@@ -275,6 +282,23 @@ void mouseMotion(int xx, int yy){
 	getMatrix(p1_x, p1_y, p2_x, p2_y);
 
 	glutPostRedisplay();
+
+}
+
+void loadTextures(void){
+
+	glActiveTexture(GL_TEXTURE2);
+	tex2.Load("cobblestone.jpg");
+	tex2.Bind();
+
+	glActiveTexture(GL_TEXTURE0);
+	tex0.Load("cubemaplayout.png");
+	//tex0.Load("cobblestone.jpg");
+	tex0.Bind();
+
+	glActiveTexture(GL_TEXTURE1);			// Make texture1 active
+	tex3.Load("cobblestone_normal.jpg");	// Load texture from file
+	tex3.Bind();
 
 }
 
@@ -338,10 +362,6 @@ void init_topFaces(void){
 
 
 	glUniform1i(glGetUniformLocation(program_0, "diffuseMap"), 0); // set the variable diffuseMap to 0 so that it uses texture0
-	glActiveTexture(GL_TEXTURE0);
-	tex0.Load("cubemaplayout.png");
-	//tex0.Load("cobblestone.jpg");
-	tex0.Bind();
 
 
 	//get the rotation matrix location in the shader
@@ -358,14 +378,19 @@ void init_topFaces(void){
 
 
 
+}
+
+void init_bottomFaces()
+{
+
 	//*****************RENDER BOTTOM FACE
 	//Use a new set of shaders for different uniform textures --- DOESNT WORK
 	ShaderInfo shader_1 = { GL_VERTEX_SHADER, "vertex_shader_1.vsh", GL_FRAGMENT_SHADER, "fragment_shader_1.fsh" };
 	program_1 = LoadShaders(shader_1);
 
 	glUseProgram(program_1);
-	
-	
+
+
 	glGenVertexArrays(1, &VAOs[BottomFace]);
 	glBindVertexArray(VAOs[BottomFace]);
 
@@ -392,27 +417,17 @@ void init_topFaces(void){
 		sizeof(texcoordsBot),
 		texcoordsBot);
 
-	vPosition = glGetAttribLocation(program_1, "s_vPosition");
+	GLuint  vPosition = glGetAttribLocation(program_1, "s_vPosition");
 	glEnableVertexAttribArray(vPosition);
 	glVertexAttribPointer(vPosition, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 
-	vTexcoord = glGetAttribLocation(program_1, "s_vTexcoord");
+	GLuint	vTexcoord = glGetAttribLocation(program_1, "s_vTexcoord");
 	glEnableVertexAttribArray(vTexcoord);
-	glVertexAttribPointer(vTexcoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(verticesBot))
-		/*BUFFER_OFFSET(3*3*sizeof(GLfloat))*/);
+	glVertexAttribPointer(vTexcoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(verticesBot)));
 
 	glUniform1i(glGetUniformLocation(program_1, "diffuseMap"), 2); // set the variable diffuseMap to 0 so that it uses texture0
-	glActiveTexture(GL_TEXTURE2);
-	//tex0.Load("cubemaplayout_cheat.png");
-	tex2.Load("cobblestone.jpg");
-	tex2.Bind();
-
-
-
-	glUniform1i(glGetUniformLocation(program_1, "normalMap"), 3); // set the variable normalMap to 1 so that it uses texture1
-	glActiveTexture(GL_TEXTURE3);			// Make texture1 active
-	tex3.Load("cobblestone_normal.jpg");	// Load texture from file
-	tex3.Bind();							// bind the texture to the active texture 
+	glUniform1i(glGetUniformLocation(program_1, "normalMap"), 1); // set the variable normalMap to 1 so that it uses texture1
+	// bind the texture to the active texture 
 
 	glBindVertexArray(0);
 	//*******************END Render Bottom Face****************
@@ -422,16 +437,13 @@ void init_topFaces(void){
 	//get the rotation matrix location in the shader
 	Mrot_unif_1 = glGetUniformLocation(program_1, "Mrot_1");
 	glUniformMatrix4fv(Mrot_unif_1, 1, GL_FALSE, rotate_mat);
-	
+
 
 
 	//****************NEEDED*********************
 	//ADD USING MULTIPLE TEXTURE
 
-}
 
-void init_bottomFaces()
-{
 }
 
 //Any time the windows is resized, this function is called.
@@ -451,9 +463,9 @@ void display(){
 	glUseProgram(program_0);
 	glBindVertexArray(VAOs[TopFaces]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
+		
 	
 	
-
 	//Draw Bottomface
 	glUseProgram(program_1);
 	glBindVertexArray(VAOs[BottomFace]);
@@ -493,6 +505,9 @@ int main(int argc, char **argv){
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+	loadTextures();
 
 	init_topFaces();
 	init_bottomFaces();
