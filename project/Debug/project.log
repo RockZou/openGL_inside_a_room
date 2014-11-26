@@ -1,14 +1,14 @@
-﻿Build started 11/25/2014 3:21:47 PM.
+﻿Build started 11/25/2014 5:10:40 PM.
      1>Project "C:\Users\Rock\Desktop\Computer_graphics\Assignment_5_code\project\project.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IC:\Users\Rock\Desktop\Computer_graphics\Assignment_5_code\\Debug\include /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
          main.cpp
-     1>main.cpp(171): warning C4244: 'initializing' : conversion from 'double' to 'GLfloat', possible loss of data
      1>main.cpp(173): warning C4244: 'initializing' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>main.cpp(181): warning C4244: 'initializing' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>main.cpp(248): warning C4305: '=' : truncation from 'double' to 'GLfloat'
-     1>main.cpp(238): warning C4101: 'i' : unreferenced local variable
-     1>main.cpp(238): warning C4101: 'j' : unreferenced local variable
+     1>main.cpp(175): warning C4244: 'initializing' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>main.cpp(183): warning C4244: 'initializing' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>main.cpp(250): warning C4305: '=' : truncation from 'double' to 'GLfloat'
+     1>main.cpp(240): warning C4101: 'i' : unreferenced local variable
+     1>main.cpp(240): warning C4101: 'j' : unreferenced local variable
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Rock\Desktop\Computer_graphics\Assignment_5_code\Debug\project.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:C:\Users\Rock\Desktop\Computer_graphics\Assignment_5_code\\Debug\lib glew32.lib freeglut.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Rock\Desktop\Computer_graphics\Assignment_5_code\Debug\project.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Rock\Desktop\Computer_graphics\Assignment_5_code\Debug\project.lib" /MACHINE:X86 Debug\LoadShaders.obj
          Debug\main.obj
@@ -19,4 +19,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.35
+Time Elapsed 00:00:01.41

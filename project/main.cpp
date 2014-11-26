@@ -48,7 +48,7 @@ Texture tex0,tex1;
 
 /****************COPY CODE*****************************/
 
-enum VAO_IDs { Triangles, NumVAOs };
+enum VAO_IDs { TopFaces,BottomFace, NumVAOs };
 enum Buffer_IDs { ArrayBuffer, NumBuffers };
 
 GLuint VAOs[NumVAOs];
@@ -58,20 +58,22 @@ GLuint Buffers[NumBuffers];
 GLfloat s = 0.5;
 
 
-const GLuint NumVerticesBot = 3;
+//coordinates for the bottom surface, rendered separtately from the rest
+const GLuint NumVerticesBot = 6;
 
-GLfloat verticesBot[] = { -0.5f, -0.5f, 0.0f,
-0.5f, -0.5f, 0.0f,
-0.0f, 0.5f, 0.0f };
-
-GLfloat texcoordsBot[] = { 0.0f, 0.0f,
-1.0f, 0.0f,
-0.5f, 0.5f };
+GLfloat verticesBot[] = {
+	s, -s, s, -s, -s, s, -s, -s, -s,
+	s, -s, s, -s, -s, -s, s, -s, -s
+};
+GLfloat texcoordsBot[] = { 
+	0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+	0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f
+};
 
 
 
 //NumVertices = number of faces * 3;
-const GLuint NumVertices = 36;
+const GLuint NumVertices = 30;
 
 GLfloat vertices[] = {
 	//front -- 123, 134
@@ -93,8 +95,8 @@ GLfloat vertices[] = {
 	s,s,-s,         -s,s,-s,      -s,s,s,
 	s,s,-s,         -s,s,s,       s,s,s,
 //bottom -- 437,478
-	s,-s,s,         -s,-s,s,      -s,-s,-s,
-	s,-s,s,         -s,-s,-s,      s,-s,-s
+	//s,-s,s,         -s,-s,s,      -s,-s,-s,
+	//s,-s,s,         -s,-s,-s,      s,-s,-s
 };
 
 GLfloat texcoords[] = {
@@ -115,8 +117,8 @@ GLfloat texcoords[] = {
 	1/2.0f, 0.0f,          1/4.0f, 0.0f,       1/4.0f, 1/3.0f,
 	1/2.0f, 0.0f,          1/4.0f, 1/3.0f,     1/2.0f, 1/3.0f,
 	//bottom -- 437,478
-	1/2.0f, 2/3.0f,        1/4.0f, 2/3.0f,     1/4.0f, 1.0f,
-	1/2.0f, 2/3.0f,        1/4.0f, 1.0f,       1/2.0f, 1.0f
+	//1/2.0f, 2/3.0f,        1/4.0f, 2/3.0f,     1/4.0f, 1.0f,
+	//1/2.0f, 2/3.0f,        1/4.0f, 1.0f,       1/2.0f, 1.0f
 };
 
 
@@ -274,8 +276,12 @@ void mouseMotion(int xx, int yy){
 
 void init(void){
 
-	glGenVertexArrays(NumVAOs, VAOs);
-	glBindVertexArray(VAOs[Triangles]);
+
+	ShaderInfo shader = { GL_VERTEX_SHADER, "vertex_shader.vsh", GL_FRAGMENT_SHADER, "fragment_shader.fsh" };
+	GLuint program = LoadShaders(shader);
+
+	glGenVertexArrays(1, &VAOs[TopFaces]);
+	glBindVertexArray(VAOs[TopFaces]);
 
 	glGenBuffers(NumBuffers, Buffers);
 
@@ -300,9 +306,6 @@ void init(void){
 		sizeof(texcoords),
 		texcoords);
 
-	ShaderInfo shader = { GL_VERTEX_SHADER, "vertex_shader.vsh", GL_FRAGMENT_SHADER, "fragment_shader.fsh" };
-	GLuint program = LoadShaders(shader);
-
 	glUseProgram(program);
 
 	GLuint vPosition = glGetAttribLocation(program, "s_vPosition");
@@ -314,10 +317,71 @@ void init(void){
 	glVertexAttribPointer(vTexcoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(vertices))
 		/*BUFFER_OFFSET(3*3*sizeof(GLfloat))*/);
 
+
+	/**************************BUG REPORT********************************/
+	/*
+	 THE glUniform1i sets the uniform variable for all instances of Shader,
+	 and therefore cannot be dynamically changed. Thus, each time a diffusemap/normalmap
+	 is loaded into the glUniform1i, every object will be using the same maps.
+	*/
+
+
 	glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0); // set the variable diffuseMap to 0 so that it uses texture0
 	glActiveTexture(GL_TEXTURE0);
-	tex0.Load("cubemaplayout_cheat.png");
+	//tex0.Load("cubemaplayout.png");
 	//tex0.Load("cobblestone.jpg");
+	tex0.Bind();
+
+	//glUniform1i(glGetUniformLocation(program, "normalMap"), 1); // set the variable normalMap to 1 so that it uses texture1
+	//glActiveTexture(GL_TEXTURE1);			// Make texture1 active
+	//tex1.Load("cobblestone_normal.jpg");	// Load texture from file
+	//tex1.Bind();							// bind the texture to the active texture 
+
+	//****************END RENDER TOP 5 FACES
+
+
+	//*****************RENDER BOTTOM FACE
+	glGenVertexArrays(1, &VAOs[BottomFace]);
+	glBindVertexArray(VAOs[BottomFace]);
+
+	glGenBuffers(NumBuffers, Buffers);
+
+	glBindBuffer(GL_ARRAY_BUFFER, Buffers[ArrayBuffer]);
+
+
+	//Create the buffer but don't load anything
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(verticesBot) + sizeof(texcoordsBot),
+		NULL,
+		GL_STATIC_DRAW);
+
+	//Load the vertex data
+	glBufferSubData(GL_ARRAY_BUFFER,
+		0,
+		sizeof(verticesBot),
+		verticesBot);
+
+	//Load the colors data right after that
+	glBufferSubData(GL_ARRAY_BUFFER,
+		sizeof(verticesBot),
+		sizeof(texcoordsBot),
+		texcoordsBot);
+
+	glUseProgram(program);
+
+	vPosition = glGetAttribLocation(program, "s_vPosition");
+	glEnableVertexAttribArray(vPosition);
+	glVertexAttribPointer(vPosition, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+
+	vTexcoord = glGetAttribLocation(program, "s_vTexcoord");
+	glEnableVertexAttribArray(vTexcoord);
+	glVertexAttribPointer(vTexcoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(verticesBot))
+		/*BUFFER_OFFSET(3*3*sizeof(GLfloat))*/);
+
+	glUniform1i(glGetUniformLocation(program, "diffuseMap"), 0); // set the variable diffuseMap to 0 so that it uses texture0
+	glActiveTexture(GL_TEXTURE0);
+	//tex0.Load("cubemaplayout_cheat.png");
+	tex0.Load("cobblestone.jpg");
 	tex0.Bind();
 
 	glUniform1i(glGetUniformLocation(program, "normalMap"), 1); // set the variable normalMap to 1 so that it uses texture1
@@ -325,12 +389,15 @@ void init(void){
 	tex1.Load("cobblestone_normal.jpg");	// Load texture from file
 	tex1.Bind();							// bind the texture to the active texture 
 
+	glBindVertexArray(0);
+	//*******************END Render Bottom Face****************
 
 
 
 	//get the rotation matrix location in the shader
 	Mrot_unif = glGetUniformLocation(program, "Mrot");
 	glUniformMatrix4fv(Mrot_unif, 1, GL_FALSE, rotate_mat);
+	
 
 
 	//****************NEEDED*********************
@@ -350,8 +417,10 @@ void changeViewport(int w, int h){
 void display(){
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glBindVertexArray(VAOs[Triangles]);
+	glBindVertexArray(VAOs[TopFaces]);
 	glDrawArrays(GL_TRIANGLES,0,NumVertices);
+	glBindVertexArray(VAOs[BottomFace]);
+	glDrawArrays(GL_TRIANGLES, 0, NumVerticesBot);
 	glFlush();
 	glutSwapBuffers();
 
