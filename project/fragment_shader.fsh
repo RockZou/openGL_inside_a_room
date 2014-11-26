@@ -42,6 +42,6 @@ vec4 computeColor(){
 	vec3 halfvector = normalize(dirToEye+dirToLight);
 	float cosSigma = dot(halfvector, normal);
 	float cosTheta = clamp(dot(normal, dirToLight),0,1);
-	return ambient + diffuse*cosTheta + specular*pow(cosSigma,shininess);
-	//return diffuse;
+	//return ambient + diffuse*cosTheta + specular*pow(cosSigma,shininess);
+	return diffuse;
 }

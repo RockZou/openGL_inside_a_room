@@ -35,6 +35,12 @@
     <None Include="vertex_shader.vsh">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="fragment_shader_1.fsh">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="vertex_shader_1.vsh">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="texture.h">

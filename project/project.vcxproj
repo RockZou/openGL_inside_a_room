@@ -97,7 +97,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment_shader.fsh" />
+    <None Include="fragment_shader_1.fsh" />
     <None Include="vertex_shader.vsh" />
+    <None Include="vertex_shader_1.vsh" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LoadShaders.h" />
