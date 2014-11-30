@@ -1,23 +1,25 @@
-﻿Build started 11/26/2014 6:07:34 AM.
-     1>Project "C:\Users\Rock\Desktop\Computer_graphics\Assignment_5_code\project\project.vcxproj" on node 2 (Build target(s)).
+﻿Build started 27.11.2014 05:37:21.
+     1>Project "C:\Users\BATU\Desktop\Assignment_5_code\project\project.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IC:\Users\Rock\Desktop\Computer_graphics\Assignment_5_code\\Debug\include /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IC:\Users\BATU\Desktop\Assignment_5_code\\Debug\include /Zi /nologo /W3 /WX- /Od /Oy- /D "WIN32" /D _DEBUG /D _CONSOLE /D "_UNICODE" /D "UNICODE" /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
          main.cpp
-     1>main.cpp(177): warning C4244: 'initializing' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>main.cpp(179): warning C4244: 'initializing' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>main.cpp(187): warning C4244: 'initializing' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>main.cpp(196): warning C4244: 'initializing' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>main.cpp(261): warning C4305: '=' : truncation from 'double' to 'GLfloat'
-     1>main.cpp(251): warning C4101: 'i' : unreferenced local variable
-     1>main.cpp(251): warning C4101: 'j' : unreferenced local variable
+     1>main.cpp(181): warning C4244: 'initializing' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>main.cpp(183): warning C4244: 'initializing' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>main.cpp(191): warning C4244: 'initializing' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>main.cpp(200): warning C4244: 'initializing' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>main.cpp(265): warning C4305: '=' : truncation from 'double' to 'GLfloat'
+     1>main.cpp(255): warning C4101: 'i' : unreferenced local variable
+     1>main.cpp(255): warning C4101: 'j' : unreferenced local variable
+     1>main.cpp(491): warning C4305: 'initializing' : truncation from 'double' to 'float'
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Rock\Desktop\Computer_graphics\Assignment_5_code\Debug\project.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:C:\Users\Rock\Desktop\Computer_graphics\Assignment_5_code\\Debug\lib glew32.lib freeglut.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Rock\Desktop\Computer_graphics\Assignment_5_code\Debug\project.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Rock\Desktop\Computer_graphics\Assignment_5_code\Debug\project.lib" /MACHINE:X86 Debug\LoadShaders.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\BATU\Desktop\Assignment_5_code\Debug\project.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:C:\Users\BATU\Desktop\Assignment_5_code\\Debug\lib glew32.lib freeglut.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\BATU\Desktop\Assignment_5_code\Debug\project.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\BATU\Desktop\Assignment_5_code\Debug\project.lib" /MACHINE:X86 Debug\Camera.obj
+         Debug\LoadShaders.obj
          Debug\main.obj
          Debug\stb_image.obj
          Debug\texture.obj
-         project.vcxproj -> C:\Users\Rock\Desktop\Computer_graphics\Assignment_5_code\Debug\project.exe
-     1>Done Building Project "C:\Users\Rock\Desktop\Computer_graphics\Assignment_5_code\project\project.vcxproj" (Build target(s)).
+         project.vcxproj -> C:\Users\BATU\Desktop\Assignment_5_code\Debug\project.exe
+     1>Done Building Project "C:\Users\BATU\Desktop\Assignment_5_code\project\project.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.87
+Time Elapsed 00:00:01.58

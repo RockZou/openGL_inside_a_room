@@ -4,19 +4,24 @@
 #include "texture.h"
 #include "LoadShaders.h"
 
+
+#include "includes.h"
+#include "Camera.h"
+
 using namespace std;
 
 #define BUFFER_OFFSET(offset) ( (void *) offset )
 #define EPS 0.000000001
 
+GLuint time_unif;
+GLuint Mcam_unif;
+GLuint Mproj_unif;
 
-/**************KNOWN UNFIXED BUG*************/
-/*When performing big range mouse movements, especially with diagonal movements, the cute
-disappears and if let go of the mouse during that period, the cube never comes back.
-Observation of the rotation matrix tells that once those movements are performed, 
-some of the terms in the rotation matrix approaches -1.
-*/
+GLuint camPos;
 
+Camera cam;
+
+glm::vec3 camPosition, gaze, up;
 
 //GLuint shaderProgramID; //replaced with GLuint program
 
@@ -43,7 +48,7 @@ GLuint program_0;
 GLuint program_1;
 
 
-Texture tex0,tex1,tex2,tex3;
+Texture tex0,tex1,tex2;
 
 /**********COPY CODE************/
 
@@ -59,21 +64,7 @@ GLuint VAOs[NumVAOs];
 GLuint Buffers[NumBuffers];
 
 //dimensions for the cube
-GLfloat s = 0.5;
-
-
-//coordinates for the bottom surface, rendered separtately from the rest
-const GLuint NumVerticesBot = 6;
-
-GLfloat verticesBot[] = {
-	s, -s, s, -s, -s, s, -s, -s, -s,
-	s, -s, s, -s, -s, -s, s, -s, -s
-};
-GLfloat texcoordsBot[] = { 
-	0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-	0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f
-};
-
+GLfloat s = 10.0f;
 
 
 //NumVertices = number of faces * 3;
@@ -123,6 +114,19 @@ GLfloat texcoords[] = {
 	//bottom -- 437,478
 	//1/2.0f, 2/3.0f,        1/4.0f, 2/3.0f,     1/4.0f, 1.0f,
 	//1/2.0f, 2/3.0f,        1/4.0f, 1.0f,       1/2.0f, 1.0f
+};
+
+
+//coordinates for the bottom surface, rendered separtately from the rest
+const GLuint NumVerticesBot = 6;
+
+GLfloat verticesBot[] = {
+	s, -s, s, -s, -s, s, -s, -s, -s,
+	s, -s, s, -s, -s, -s, s, -s, -s
+};
+GLfloat texcoordsBot[] = {
+	0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+	0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f
 };
 
 
@@ -297,11 +301,48 @@ void loadTextures(void){
 	tex0.Bind();
 
 	glActiveTexture(GL_TEXTURE1);			// Make texture1 active
-	tex3.Load("cobblestone_normal.jpg");	// Load texture from file
-	tex3.Bind();
+	tex1.Load("cobblestone_normal.jpg");	// Load texture from file
+	tex1.Bind();
 
 }
 
+void init_camera_top(){
+	Mcam_unif = glGetUniformLocation(program_0, "Mcam");
+	Mproj_unif = glGetUniformLocation(program_0, "Mproj");
+
+	camPos = glGetUniformLocation(program_0, "camPos");
+
+	GLuint vnewEyePos = glGetAttribLocation(program_0, "vnewEyePosition");
+	glEnableVertexAttribArray(vnewEyePos);
+	glVertexAttribPointer(vnewEyePos, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+
+	cam.setAttribLocations(Mcam_unif, Mproj_unif);
+
+	cam.position = glm::vec3(0, 0, 0);
+	cam.gaze = glm::vec3(0, 0, -1);
+	cam.up = glm::vec3(0, 1, 0);
+	cam.setCameraMatrix();
+	cam.setPerspectiveProjection(60, 1, -1, -5000);
+}
+
+void init_camera_bottom(){
+	Mcam_unif = glGetUniformLocation(program_1, "Mcam");
+	Mproj_unif = glGetUniformLocation(program_1, "Mproj");
+
+	camPos = glGetUniformLocation(program_1, "camPos");
+
+	GLuint vnewEyePos = glGetAttribLocation(program_1, "vnewEyePosition");
+	glEnableVertexAttribArray(vnewEyePos);
+	glVertexAttribPointer(vnewEyePos, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+
+	cam.setAttribLocations(Mcam_unif, Mproj_unif);
+
+	cam.position = glm::vec3(0, 0, 0);
+	cam.gaze = glm::vec3(0, 0, -1);
+	cam.up = glm::vec3(0, 1, 0);
+	cam.setCameraMatrix();
+	cam.setPerspectiveProjection(60, 1, -1, -100);
+}
 
 void init_topFaces(void){
 
@@ -311,7 +352,7 @@ void init_topFaces(void){
 
 	glUseProgram(program_0);
 
-
+	init_camera_top();
 
 	glGenVertexArrays(1, &VAOs[TopFaces]);
 	glBindVertexArray(VAOs[TopFaces]);
@@ -322,7 +363,7 @@ void init_topFaces(void){
 
 
 	//Create the buffer but don't load anything
-	glBufferData(GL_ARRAY_BUFFER,
+	glBufferData(GL_ARRAY_BUFFER, 
 		sizeof(vertices)+sizeof(texcoords),
 		NULL,
 		GL_STATIC_DRAW);
@@ -345,38 +386,15 @@ void init_topFaces(void){
 
 	GLuint vTexcoord = glGetAttribLocation(program_0, "s_vTexcoord");
 	glEnableVertexAttribArray(vTexcoord);
-	glVertexAttribPointer(vTexcoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(vertices))
-		/*BUFFER_OFFSET(3*3*sizeof(GLfloat))*/);
-
-
-	/**************************BUG REPORT********************************/
-	/*
-	 THE glUniform1i sets the uniform variable for all instances of Shader,
-	 and therefore cannot be dynamically changed. Thus, each time a diffusemap/normalmap
-	 is loaded into the glUniform1i, every object will be using the same maps.
-	*/
-	/*ATTEMPTED SOLUTIONS*/
-	/*SOLUTION 1:
-		Use sepatate shaders -- not working. only one shader seem to be active
-	*/
-
+	glVertexAttribPointer(vTexcoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(vertices)));
 
 	glUniform1i(glGetUniformLocation(program_0, "diffuseMap"), 0); // set the variable diffuseMap to 0 so that it uses texture0
-
 
 	//get the rotation matrix location in the shader
 	Mrot_unif = glGetUniformLocation(program_0, "Mrot");
 	glUniformMatrix4fv(Mrot_unif, 1, GL_FALSE, rotate_mat);
 
-	//glUniform1i(glGetUniformLocation(program, "normalMap"), 1); // set the variable normalMap to 1 so that it uses texture1
-	//glActiveTexture(GL_TEXTURE1);			// Make texture1 active
-	//tex1.Load("cobblestone_normal.jpg");	// Load texture from file
-	//tex1.Bind();							// bind the texture to the active texture 
-
 	//****************END RENDER TOP 5 FACES
-
-
-
 
 }
 
@@ -390,6 +408,7 @@ void init_bottomFaces()
 
 	glUseProgram(program_1);
 
+	init_camera_bottom();
 
 	glGenVertexArrays(1, &VAOs[BottomFace]);
 	glBindVertexArray(VAOs[BottomFace]);
@@ -427,22 +446,14 @@ void init_bottomFaces()
 
 	glUniform1i(glGetUniformLocation(program_1, "diffuseMap"), 2); // set the variable diffuseMap to 0 so that it uses texture0
 	glUniform1i(glGetUniformLocation(program_1, "normalMap"), 1); // set the variable normalMap to 1 so that it uses texture1
-	// bind the texture to the active texture 
-
-	glBindVertexArray(0);
-	//*******************END Render Bottom Face****************
-
 
 
 	//get the rotation matrix location in the shader
 	Mrot_unif_1 = glGetUniformLocation(program_1, "Mrot_1");
 	glUniformMatrix4fv(Mrot_unif_1, 1, GL_FALSE, rotate_mat);
 
-
-
-	//****************NEEDED*********************
-	//ADD USING MULTIPLE TEXTURE
-
+	glBindVertexArray(0);
+	//*******************END Render Bottom Face****************
 
 }
 
@@ -457,30 +468,115 @@ void display(){
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	glUniform3f(camPos, cam.position.x, cam.position.y, cam.position.z);
 
-	
 	//Draw Topfaces
 	glUseProgram(program_0);
 	glBindVertexArray(VAOs[TopFaces]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
-		
-	
 	
 	//Draw Bottomface
 	glUseProgram(program_1);
 	glBindVertexArray(VAOs[BottomFace]);
 	glDrawArrays(GL_TRIANGLES, 0, NumVerticesBot);
-	
-
-
-
-
-
-
 
 	glFlush();
 	glutSwapBuffers();
+}
 
+
+void special(int key, int x, int y)
+{
+
+	float theta = 0.10;
+
+
+	glm::vec3 old_cam_gaze = cam.gaze;
+	glm::vec3 old_cam_up = cam.up;
+	glm::vec3 old_cam_w = glm::cross(-cam.gaze, cam.up);
+
+	switch (key)
+	{
+	case GLUT_KEY_UP:
+
+		cam.gaze = cos(theta)*old_cam_gaze + sin(theta)*old_cam_up;
+		cam.up = cos(theta)*old_cam_up - sin(theta)*old_cam_gaze;
+		glUseProgram(program_0);
+		cam.setCameraMatrix();
+		glUseProgram(program_1);
+		cam.setCameraMatrix();
+		glutPostRedisplay();
+		break;
+
+	case GLUT_KEY_DOWN:
+
+		cam.gaze = cos(theta)*old_cam_gaze - sin(theta)*old_cam_up;
+		cam.up = cos(theta)*old_cam_up + sin(theta)*old_cam_gaze;
+		glUseProgram(program_0);
+		cam.setCameraMatrix();
+		glUseProgram(program_1);
+		cam.setCameraMatrix();
+		glutPostRedisplay();
+		break;
+
+	case GLUT_KEY_LEFT:
+		cam.gaze = cos(theta)*old_cam_gaze + sin(theta)*old_cam_w;
+		glUseProgram(program_0);
+		cam.setCameraMatrix();
+		glUseProgram(program_1);
+		cam.setCameraMatrix();
+		glutPostRedisplay();
+		break;
+
+	case GLUT_KEY_RIGHT:
+
+		cam.gaze = cos(theta)*old_cam_gaze - sin(theta)*old_cam_w;
+		glUseProgram(program_0);
+		cam.setCameraMatrix();
+		glUseProgram(program_1);
+		cam.setCameraMatrix();
+		glutPostRedisplay();
+		break;
+	}
+}
+
+
+void keyboard(unsigned char key, int x, int y){
+	float next_x = cam.position.x + 0.1f*cam.gaze.x;
+	float next_y = cam.position.y + 0.1f*cam.gaze.y;
+	float next_z = cam.position.z + 0.1f*cam.gaze.z;
+
+	float prev_x = cam.position.x - 0.1f*cam.gaze.x;
+	float prev_y = cam.position.y - 0.1f*cam.gaze.y;
+	float prev_z = cam.position.z - 0.1f*cam.gaze.z;
+
+
+	if (key == 'a'){
+		if (next_x > -8.0f  && next_x < 8.0f &&
+			next_y > -8.0f  && next_y < 8.0f &&
+			next_z > -8.0f  && next_z < 8.0f
+			){
+			cam.position += 0.1f*cam.gaze;
+			glUseProgram(program_0);
+			cam.setCameraMatrix();
+			glUseProgram(program_1);
+			cam.setCameraMatrix();
+			glutPostRedisplay();
+		}
+	}
+	else if (key == 'z'){
+		if (prev_x > -8.0f  && prev_x < 8.0f &&
+			prev_y > -8.0f  && prev_y < 8.0f &&
+			prev_z > -8.0f  && prev_z < 8.0f
+			){
+			cam.position -= 0.1f*cam.gaze;
+			glUseProgram(program_0);
+			cam.setCameraMatrix();
+			glUseProgram(program_1);
+			cam.setCameraMatrix();
+			glutPostRedisplay();
+		}
+	}
 }
 
 int main(int argc, char **argv){
@@ -513,6 +609,10 @@ int main(int argc, char **argv){
 	init_bottomFaces();
 
 	glutDisplayFunc(display);
+
+	glutSpecialFunc(special);
+	glutKeyboardFunc(keyboard);
+
 	glutMouseFunc(mouse);
 	glutMotionFunc(mouseMotion);
 
@@ -521,11 +621,6 @@ int main(int argc, char **argv){
 		cerr<<"GLEW error";			 //in the API.
 		return 1;
 	}
-
-	/*Original Shader Program*/
-	/*Shader s("myshader");
-	GLuint shaderProgramID = s.Bind();*/
-	/*End Shader Program*/
 
 	glutMainLoop();
 	

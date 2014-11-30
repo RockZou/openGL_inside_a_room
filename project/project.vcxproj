@@ -83,6 +83,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="LoadShaders.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stb_image.cpp" />
@@ -102,6 +103,8 @@
     <None Include="vertex_shader_1.vsh" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="includes.h" />
     <ClInclude Include="LoadShaders.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="texture.h" />
